@@ -18,12 +18,14 @@ class User extends Authenticatable
         'name', 'email', 'password',
     ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password', 'remember_token',
-    ];
+    public function spends(){
+        return $this->belongsToMany('App\Spend');
+    }
+
+    public function balance(){
+        return $this->hasOne('App\Balance');
+    }
+    public function part(){
+        return $this->hasOne('App\Part');
+    }
 }

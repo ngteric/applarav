@@ -11,6 +11,11 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+
+
+Auth::routes();
+
+Route::get('/',"BackController@index")->middleware('auth');
+Route::get('/dashboard', "BackController@index")->middleware('auth');
+Route::get('/spend/{id}', "BackController@showSpend")->middleware('auth');
+Route::post('/logout', "BackController@logout")->middleware('auth')->name('logout');
