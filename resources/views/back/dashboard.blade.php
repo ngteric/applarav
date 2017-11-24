@@ -1,8 +1,11 @@
 @extends('layouts.app')
 @section('content')
 @if(Session::has('flashMessage'))
+
 <div class="alert alert-success">
-    {{ Session::get('flashMessage')}} 
+    <div class='container'>
+        {{ Session::get('flashMessage')}} 
+    </div>
 </div>
 @endif
 <div class="container">

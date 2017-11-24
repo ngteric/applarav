@@ -55,26 +55,26 @@ class SpendController extends Controller
             
         ]);
         
+        // get total part price
         $totalPrice = 0;
         foreach ($request->prices as $price) {
-            $totalPrice += $price; 
+            $totalPrice += $price;
         }
         
-        if($totalPrice == $request->price){
-
+        if ($totalPrice == $request->price) {
             $spend = Spend::create($request->all());
+
+            // attach part price to user
             for ($i=0; $i < count($request->users_id); $i++) {
                 $spend->users()->attach( $request->users_id[$i], ["price"=> $request->prices[$i]]);
             }
             session()->flash('flashMessage', 'Spend added !');
             
             return redirect()->route('spend.index');
-        }else{
+        } else {
             session()->flash('flashMessageError', 'the price distribution is not equal to spend price !');
             return redirect('spend/create');
         }
-       
-    
     }
 
     /**
