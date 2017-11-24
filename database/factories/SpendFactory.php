@@ -10,6 +10,6 @@ $factory->define(App\Spend::class, function (Faker $faker) {
        'description'=> $faker->text,
        'pay_date' => $faker->dateTime($max = 'now', $timezone = date_default_timezone_get()),
        'price' => $faker->randomFloat(2, 0, 1000),
-       'status' => 'paid'
+       'status' => $faker->randomElement(['paid','account'])
     ];
 });

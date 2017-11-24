@@ -14,8 +14,8 @@ class CreateUserSpendTable extends Migration
     public function up()
     {
         Schema::create('spend_user', function (Blueprint $table) {
-            $table->integer('user_id')->unsigned();
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->integer('user_id')->unsigned()->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('SET NULL');
             $table->integer('spend_id')->unsigned();
             $table->foreign('spend_id')->references('id')->on('spends')->onDelete('CASCADE');
             $table->decimal('price',7,2)->nullable();

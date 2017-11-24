@@ -11,6 +11,8 @@ class SpendsTableSeeder extends Seeder
      */
     public function run()
     {
+
+
         factory(App\Spend::class,6)->create()->each(function($spend){
 
             $users = App\User::pluck('id')->all();
@@ -26,9 +28,40 @@ class SpendsTableSeeder extends Seeder
             else{
                 $selectUsers[] = $users[$randomKeys]; 
             }
-            $price = $spend->price / count($selectUsers);
             
-            $spend->users()->attach($selectUsers, ['price' => $price]);
+            $prices = array();
+            $priceMax = 10;
+            
+            // TODO
+            // for ($i=0; $i < count($selectUsers) ; $i++) { 
+            //         if($i == 0){
+            //             $prices[$i] = rand( $priceMax , $spend->price - ($priceMax * count($selectUsers)) );
+            //         }
+            //         else{
+            //             // if i < nbuser
+            //             if($i < count($selectUsers)){
+            //                 if( (($spend->price - $priceMax * count($selectUsers)) - array_sum($prices)) > $priceMax ){
+            //                     $prices[$i] = rand( $priceMax , (($spend->price - ($priceMax * (count($selectUsers) - $i)) ) - array_sum($prices) ) );
+            //                 }
+                            
+            //                 while( (($spend->price - $priceMax * count($selectUsers)) - array_sum($prices)) < $priceMax ){
+            //                     $prices[$i] = rand( $priceMax , (($spend->price - ($priceMax * (count($selectUsers) - $i)) ) - array_sum($prices) ) );
+            //                 }
+                            
+
+            //             }
+            //             // if last iteration
+            //             else{
+            //                 $prices[$i] =  $spend->price - array_sum($prices);
+            //             }
+            //         }
+                    
+                
+            //     $spend->users()->attach($selectUsers[$i],['price' =>$prices[$i]]);
+            // }
+            
+            $price = $spend->price / count($selectUsers);
+            $spend->users()->attach($selectUsers,['price' =>$price ]);
 
         });
     }

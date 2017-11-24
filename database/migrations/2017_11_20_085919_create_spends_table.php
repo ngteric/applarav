@@ -19,7 +19,7 @@ class CreateSpendsTable extends Migration
             $table->text('description');
             $table->datetime('pay_date');
             $table->decimal('price', 7,2);
-            $table->enum('status', ['in progress', 'paid', 'canceled'])->default('in progress');
+            $table->enum('status', ['paid', 'account'])->default('paid');
             $table->timestamps();
         });
     }
