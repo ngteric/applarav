@@ -8349,6 +8349,7 @@ button.close {
     display: none !important;
   }
 }
+<<<<<<< HEAD
 
 #chart {
   height: 250px;
@@ -8384,4 +8385,6 @@ button.close {
   right: 0;
   top: -70px;
 }
+=======
+>>>>>>> dc8af84be9975b84fd013b5a7e31789a8b1b6bc7
 

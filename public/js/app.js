@@ -990,6 +990,7 @@ window.Vue = __webpack_require__(35);
 Vue.component('example-component', __webpack_require__(38));
 
 var app = new Vue({
+<<<<<<< HEAD
     el: '#app'
 });
 
@@ -1067,6 +1068,11 @@ function init() {
     }
 }
 
+=======
+  el: '#app'
+});
+
+>>>>>>> dc8af84be9975b84fd013b5a7e31789a8b1b6bc7
 /***/ }),
 /* 11 */
 /***/ (function(module, exports, __webpack_require__) {
