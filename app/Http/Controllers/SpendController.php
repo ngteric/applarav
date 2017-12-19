@@ -192,19 +192,38 @@ class SpendController extends Controller
 
         $balances = Balance::all();
         $suggestions = array();
+        $inc = 0;
         for ($i=0; $i < count($usersSpend); $i++) { 
-            if($usersSpend[$i]['due'] < 0){
-                for ($j=0; $j < count($usersSpend) ; $j++) { 
-                    if($usersSpend[$j]['due'] > 0){
-                        $suggestions[$i]['price'] = $usersSpend[$j]['due'] + $usersSpend[$i]['due'];
-                        $suggestions[$i]['name'] = $usersSpend[$i]['name'];
-                        $suggestions[$i]['to'] = $usersSpend[$j]['name'];
-                    }
+            $j = 0;
+            while($usersSpend[$i]['due'] < 0){
+                if($j >= count($usersSpend)){
+                    break;
                 }
+                if($usersSpend[$j]['due'] > 0){
+                    $due = $usersSpend[$j]['due'] + $usersSpend[$i]['due'];
+
+                    // if positive add to j
+                    if($due > 0){
+                        $suggestions[$inc]['price'] = abs($usersSpend[$i]['due']);
+                        $usersSpend[$j]['due'] = $due;
+                        $usersSpend[$i]['due'] = 0;
+                        
+                    // if negative add to i
+                    }else{
+                        $suggestions[$inc]['price'] = $usersSpend[$j]['due'];
+                        $usersSpend[$i]['due'] = $due;
+                        $usersSpend[$j]['due'] = 0;
+                    }
+                    
+                    $suggestions[$inc]['name'] = $usersSpend[$i]['name'];
+                    $suggestions[$inc]['to'] = $usersSpend[$j]['name'];
+                }
+                $j++;
+                $inc++;
             }
         }
-        dump($suggestions);
+        
         // update db
-        return view('back.balance', compact('balances'));
+        return view('back.balance', compact('balances', 'suggestions'));
     }
 }
