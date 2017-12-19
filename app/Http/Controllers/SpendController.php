@@ -190,7 +190,7 @@ class SpendController extends Controller
         }
         
 
-        $balances = Balance::all();
+        $balances = Balance::with('user')->get();
         $suggestions = array();
         $inc = 0;
         for ($i=0; $i < count($usersSpend); $i++) { 
@@ -224,6 +224,6 @@ class SpendController extends Controller
         }
         
         // update db
-        return view('back.balance', compact('balances', 'suggestions'));
+        return view('back.balance', compact('users','balances', 'suggestions', 'totalSpend'));
     }
 }
