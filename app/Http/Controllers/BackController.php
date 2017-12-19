@@ -9,6 +9,7 @@ use Auth;
 class BackController extends Controller
 {
   
+        
     public function logout(){
         Auth::logout();
         return view("auth.login");

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\Spend;
+use App\Part;
+use App\Balance;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -19,8 +21,12 @@ class SpendController extends Controller
     {
         
         $spends = Spend::orderBy('created_at', 'desc')->paginate(5);
-        $users = User::all();
         
+        $users = User::with(['spends' => function ($query) {
+            $query->selectRaw('SUM(`spend_user`.`price`) as `total`, `spends`.*')
+            ->groupBy("user_id");
+        }])->get();
+
         return view("back.dashboard", compact('spends', 'users'));
     }
 
@@ -123,5 +129,82 @@ class SpendController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    /**
+     * Calculette balances for users
+     *
+     * 
+     * @return \Illuminate\Http\Response
+     */
+    public function balance(){
+        
+      
+
+        // get total spend by one user
+        $usersSpend = array();
+        //$users = User::all();
+        $users = User::with(['spends' => function ($query) {
+            $query->selectRaw('SUM(`spend_user`.`price`) as `total`')
+            ->groupBy("user_id");
+        }, 'part'])->get();
+
+        // get total spend by all users
+        $spends = Spend::all();
+        $totalSpend = $spends->sum('price');
+        
+        
+        // get part
+        $parts = Part::all();
+        $totalParts = 0;
+        foreach($parts as $part){
+            $totalParts += intval($part->day);
+        }
+        
+
+        // get parts for 1 users from total spend
+        $partSpend = ($totalSpend != 0) ? $totalSpend / $totalParts : null;
+
+        
+        if($partSpend != null){
+            $inc = 0;
+            foreach($users as $user){
+                foreach($user->spends as $spend){
+                    $usersSpend[$inc]['name'] = $user->name;
+                    $usersSpend[$inc]['due'] = $spend->total - ($partSpend * intval($user->part->day));
+                    $usersSpend[$inc]['part'] = intval($user->part->day);
+                }
+                $balance = Balance::find($user->id);
+                if($balance){
+                    $balance->due = $usersSpend[$inc]['due'];
+                    $balance->save();
+                }
+                else{
+                    $balance = new Balance;
+                    $balance->user_id = $user->id;
+                    $balance->due = $usersSpend[$inc]['due'];
+                    $balance->save();
+                }
+                $inc ++;
+            }
+        }
+        
+
+        $balances = Balance::all();
+        $suggestions = array();
+        for ($i=0; $i < count($usersSpend); $i++) { 
+            if($usersSpend[$i]['due'] < 0){
+                for ($j=0; $j < count($usersSpend) ; $j++) { 
+                    if($usersSpend[$j]['due'] > 0){
+                        $suggestions[$i]['price'] = $usersSpend[$j]['due'] + $usersSpend[$i]['due'];
+                        $suggestions[$i]['name'] = $usersSpend[$i]['name'];
+                        $suggestions[$i]['to'] = $usersSpend[$j]['name'];
+                    }
+                }
+            }
+        }
+        dump($suggestions);
+        // update db
+        return view('back.balance', compact('balances'));
     }
 }

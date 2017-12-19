@@ -13,19 +13,18 @@
         <h2>Dashboard</h2>
         <div id='chart'>
             @forelse($users as $user)
-                <?php $tot = 0; ?>
                 @foreach($user->spends as $spend)
-                <?php $tot += $spend->pivot->price; ?>
+                    <div class='part'>
+                        <div class='graph' data-price='{{$spend->total}}'><p class='part-price'>{{$spend->total}} €</p></div>
+                        <p class='part-name'>{{$user->name}}</p>
+                    </div>
                 @endforeach
-                <div class='part'>
-                    <div class='graph' data-price='{{$tot}}'><p class='part-price'>{{$tot}} €</p></div>
-                    <p class='part-name'>{{$user->name}}</p>
-                </div>
             @empty
             <p>Indisponible.</p>
             @endforelse
         </div>
         <a href='{{ route("spend.create") }}' class="btn btn-primary" style='margin-bottom:25px'>Add spend</a>
+        <a href='{{ route("balance") }}' class="btn btn-primary" style='margin-bottom:25px'>End trip</a>
         <div class="list-group">
             @foreach($spends as $spend)
             <a href="{{url('spend', $spend->id)}}" class="list-group-item">

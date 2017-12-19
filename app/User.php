@@ -28,5 +28,7 @@ class User extends Authenticatable
     public function part(){
         return $this->hasOne('App\Part');
     }
-
+    public function isAdmin(){
+        return $this->role === 'administrator';
+    }
 }

@@ -24,7 +24,12 @@ class PartsTableSeeder extends Seeder
             ],
             [
                 'user_id' => 3,
-                'day' => 2.00,
+                'day' => 7.00,
+                'started' => date("Y-m-d H:i:s")
+            ],
+            [
+                'user_id' => 4,
+                'day' => 6.00,
                 'started' => date("Y-m-d H:i:s")
             ],
         ));
