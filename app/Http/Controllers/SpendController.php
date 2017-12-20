@@ -6,9 +6,12 @@ use App\User;
 use App\Spend;
 use App\Part;
 use App\Balance;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 
 class SpendController extends Controller
 {
@@ -19,14 +22,21 @@ class SpendController extends Controller
      */
     public function index()
     {
-        
-        $spends = Spend::orderBy('created_at', 'desc')->paginate(5);
-        
-        $users = User::with(['spends' => function ($query) {
-            $query->selectRaw('SUM(`spend_user`.`price`) as `total`, `spends`.*')
-            ->groupBy("user_id");
-        }])->get();
 
+        $spends = Spend::orderBy('created_at', 'desc')->paginate(5);
+
+        $key = \Route::getCurrentRoute()->getName();
+        if(Cache::has($key)){
+           $users =  Cache::get($key);
+        }else{
+            $users = User::with(['spends' => function ($query) {
+                $query->selectRaw('SUM(`spend_user`.`price`) as `total`, `spends`.*')
+                ->groupBy("user_id");
+            }])->get();
+            $expiresAt = Carbon::now()->addMinutes(10);
+            Cache::put($key, $users, $expiresAt);
+        }      
+        
         return view("back.dashboard", compact('spends', 'users'));
     }
 
@@ -143,19 +153,44 @@ class SpendController extends Controller
 
         // get total spend by one user
         $usersSpend = array();
-        //$users = User::all();
-        $users = User::with(['spends' => function ($query) {
-            $query->selectRaw('SUM(`spend_user`.`price`) as `total`')
-            ->groupBy("user_id");
-        }, 'part'])->get();
-
+        
+        $expiresAt = Carbon::now()->addMinutes(10);
         // get total spend by all users
         $spends = Spend::all();
+        $refreshing = true;
         $totalSpend = $spends->sum('price');
         
+       
+        $key = \Route::getCurrentRoute()->getName();
+
+        if(Cache::has($key.'.spendCount')){
+            $spendCount = Cache::get($key.'.spendCount');
+            $refreshing = ($spendCount != count($spends)) ? true : false;
+        }else{
+            Cache::put($key.'.spendCount', count($spends), $expiresAt);
+        }
+        
+        
+        
+
+        if(Cache::has($key.'.users') && Cache::has($key.'.parts')){
+           $users = Cache::get($key.'.users');
+           $parts = Cache::get($key.'.parts');
+         
+        }else{
+            $parts = Part::all();
+            $users = User::with(['spends' => function ($query) {
+                $query->selectRaw('SUM(`spend_user`.`price`) as `total`, `spends`.*')
+                ->groupBy("user_id");
+            }, 'part'])->get();
+            
+            Cache::put($key.'.users', $users, $expiresAt);
+            Cache::put($key.'.parts', $parts, $expiresAt);
+           
+        }      
+
         
         // get part
-        $parts = Part::all();
         $totalParts = 0;
         foreach($parts as $part){
             $totalParts += intval($part->day);
@@ -174,16 +209,19 @@ class SpendController extends Controller
                     $usersSpend[$inc]['due'] = $spend->total - ($partSpend * intval($user->part->day));
                     $usersSpend[$inc]['part'] = intval($user->part->day);
                 }
-                $balance = Balance::find($user->id);
-                if($balance){
-                    $balance->due = $usersSpend[$inc]['due'];
-                    $balance->save();
-                }
-                else{
-                    $balance = new Balance;
-                    $balance->user_id = $user->id;
-                    $balance->due = $usersSpend[$inc]['due'];
-                    $balance->save();
+                if($refreshing){
+                    $balance = Balance::find($user->id);
+                    if($balance){
+                        $balance->due = $usersSpend[$inc]['due'];
+                        $balance->save();
+                    }
+                    else{
+                        $balance = new Balance;
+                        $balance->user_id = $user->id;
+                        $balance->due = $usersSpend[$inc]['due'];
+                        $balance->save();
+                    }
+                    Cache::put($key.'.spendCount', count($spends), $expiresAt);
                 }
                 $inc ++;
             }
@@ -224,6 +262,6 @@ class SpendController extends Controller
         }
         
         // update db
-        return view('back.balance', compact('users','balances', 'suggestions', 'totalSpend'));
+        return view('back.balance', compact('users', 'balances', 'suggestions', 'totalSpend'));
     }
 }

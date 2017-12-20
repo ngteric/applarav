@@ -11,16 +11,15 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
-        $users = factory(App\User::class, 3)->create();
+       $users = factory(App\User::class, 3)->create();
 
 
         DB::Table('users')->insert(array(
-            
-            
             [
                 'name' => 'Eric',
                 'email' => 'nongeric@gmail.com',
                 'password'=> Hash::make('root'),
+                'role'=> 'admin',
             ],
 
         ));

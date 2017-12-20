@@ -24,7 +24,7 @@
             @endforelse
         </div>
         <a href='{{ route("spend.create") }}' class="btn btn-primary" style='margin-bottom:25px'>Add spend</a>
-        <a href='{{ route("balance") }}' class="btn btn-primary" style='margin-bottom:25px'>End trip</a>
+        <a href='{{ route("balance") }}' class="btn btn-primary" style='margin-bottom:25px'>Show balances</a>
         <div class="list-group">
             @foreach($spends as $spend)
             <a href="{{url('spend', $spend->id)}}" class="list-group-item">

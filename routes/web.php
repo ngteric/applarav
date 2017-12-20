@@ -15,7 +15,7 @@
 
 Auth::routes();
 
-Route::get('/',"SpendController@index")->middleware('auth');
+Route::get('/',"SpendController@index")->middleware('auth')->name('home');
 Route::get('/dashboard',"SpendController@index")->middleware('auth');
 Route::resource('spend', "SpendController")->middleware('auth');
 Route::get('/balance',"SpendController@balance")->middleware('auth')->name('balance');
