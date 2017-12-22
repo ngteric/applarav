@@ -18,6 +18,8 @@ class CreateBalancesTable extends Migration
             $table->integer('user_id')->unsigned();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('CASCADE');
             $table->decimal('due',7,2);
+            $table->integer('trip_id')->unsigned()->nullable();
+            $table->foreign('trip_id')->references('id')->on('trips')->onDelete('CASCADE');
             $table->timestamps();
         });
     }

@@ -20,6 +20,8 @@ class CreateSpendsTable extends Migration
             $table->datetime('pay_date');
             $table->decimal('price', 7,2);
             $table->enum('status', ['paid', 'account'])->default('paid');
+            $table->integer('trip_id')->unsigned()->nullable();
+            $table->foreign('trip_id')->references('id')->on('trips')->onDelete('CASCADE');
             $table->timestamps();
         });
     }

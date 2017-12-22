@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', init, false);
 function init(){
 
     var chart = document.getElementById('chart');
-
+  
+    
     if(chart){
 
         var graph = chart.getElementsByClassName('graph');
@@ -98,5 +99,15 @@ function init(){
 
    }
 
+   var tripForm = document.getElementById('trip-form');
+   if(tripForm){
+        var addButton = document.getElementsByClassName('add-user')[0];
+        var list = document.getElementsByClassName('user-list')[0];
+        let template = "<li><label for='name'>name*</label><input id='name' type='text' class='form-control' name='name[]'><label for='email'>email*</label><input id='email' type='text' class='form-control' name='email[]' ><label for='day'>How many day ?*</label><input id='day' type='number' class='form-control' name='day[]' ></li>";
+        addButton.addEventListener('click', function(e){
+            e.preventDefault();
+            list.innerHTML += template;
+        });
 
+   }
 }

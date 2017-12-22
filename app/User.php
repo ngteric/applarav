@@ -15,7 +15,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'trip_id'
     ];
 
     public function spends(){
@@ -27,6 +27,9 @@ class User extends Authenticatable
     }
     public function part(){
         return $this->hasOne('App\Part');
+    }
+    public function trip(){
+        return $this->hasOne('App\Trip');
     }
     public function isAdmin(){
         return $this->role === 'administrator';

@@ -19,6 +19,8 @@ class CreatePartsTable extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('CASCADE');
             $table->decimal('day', 4,2);
             $table->datetime('started');
+            $table->integer('trip_id')->unsigned()->nullable();
+            $table->foreign('trip_id')->references('id')->on('trips')->onDelete('CASCADE');
             $table->timestamps();
         });
     }

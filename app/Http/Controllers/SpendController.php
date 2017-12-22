@@ -10,11 +10,30 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class SpendController extends Controller
 {
+
+    protected $user;
+    protected $trip_id;
+
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            $this->user= Auth::user();
+            if($this->user->trip_id == null){
+                return redirect('/trip/create');
+            }
+            else{
+                $this->trip_id = $this->user->trip_id;
+            }
+            return $next($request);
+        });
+    }
+    
+  
     /**
      * Display a listing of the resource.
      *
@@ -22,21 +41,14 @@ class SpendController extends Controller
      */
     public function index()
     {
-
-        $spends = Spend::orderBy('created_at', 'desc')->paginate(5);
-
-        $key = \Route::getCurrentRoute()->getName();
-        if(Cache::has($key)){
-           $users =  Cache::get($key);
-        }else{
-            $users = User::with(['spends' => function ($query) {
-                $query->selectRaw('SUM(`spend_user`.`price`) as `total`, `spends`.*')
-                ->groupBy("user_id");
-            }])->get();
-            $expiresAt = Carbon::now()->addMinutes(10);
-            Cache::put($key, $users, $expiresAt);
-        }      
         
+        $spends = Spend::orderBy('created_at', 'desc')->where('trip_id' ,'=', $this->trip_id)->paginate(5);
+
+        $users = User::with(['spends' => function ($query) {
+            $query->selectRaw('SUM(`spend_user`.`price`) as `total`, `spends`.*')
+            ->groupBy("user_id");
+        }])->where('trip_id' ,'=', $this->trip_id)->get();
+       
         return view("back.dashboard", compact('spends', 'users'));
     }
 
@@ -47,7 +59,7 @@ class SpendController extends Controller
      */
     public function create()
     {
-        $users = User::all();
+        $users = User::where('trip_id' ,'=', $this->trip_id)->get();
         return view("back.spend.create", compact('users'));
     }
 
@@ -79,7 +91,7 @@ class SpendController extends Controller
         
         if ($totalPrice == $request->price) {
             $spend = Spend::create($request->all());
-
+            $spend->update([ 'trip_id' => $this->trip_id]);
             // attach part price to user
             for ($i=0; $i < count($request->users_id); $i++) {
                 $spend->users()->attach( $request->users_id[$i], ["price"=> $request->prices[$i]]);
@@ -102,7 +114,7 @@ class SpendController extends Controller
     public function show($id)
     {
         $spend = Spend::findOrFail($id);
-        $users = User::all();
+        $users = User::where('trip_id' ,'=', $this->trip_id)->get();
         
         return view("back.spend.show", compact('spend', 'users'));
     }
@@ -156,7 +168,7 @@ class SpendController extends Controller
         
         $expiresAt = Carbon::now()->addMinutes(10);
         // get total spend by all users
-        $spends = Spend::all();
+        $spends = Spend::where('trip_id' ,'=', $this->trip_id)->get();
         $refreshing = true;
         $totalSpend = $spends->sum('price');
         
@@ -182,7 +194,7 @@ class SpendController extends Controller
             $users = User::with(['spends' => function ($query) {
                 $query->selectRaw('SUM(`spend_user`.`price`) as `total`, `spends`.*')
                 ->groupBy("user_id");
-            }, 'part'])->get();
+            }, 'part'])->where('trip_id' ,'=', $this->trip_id)->get();
             
             Cache::put($key.'.users', $users, $expiresAt);
             Cache::put($key.'.parts', $parts, $expiresAt);
@@ -218,6 +230,7 @@ class SpendController extends Controller
                     else{
                         $balance = new Balance;
                         $balance->user_id = $user->id;
+                        $balance->trip_id = $this->trip_id;
                         $balance->due = $usersSpend[$inc]['due'];
                         $balance->save();
                     }
@@ -228,7 +241,7 @@ class SpendController extends Controller
         }
         
 
-        $balances = Balance::with('user')->get();
+        $balances = Balance::with('user')->where('trip_id' ,'=', $this->trip_id)->get();
         $suggestions = array();
         $inc = 0;
         for ($i=0; $i < count($usersSpend); $i++) { 

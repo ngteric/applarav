@@ -20,6 +20,8 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->enum('role', ['admin', 'participant']);
             $table->string('avatar_link')->nullable();
+            $table->integer('trip_id')->unsigned()->nullable();
+            $table->foreign('trip_id')->references('id')->on('trips')->onDelete('SET NULL');
             $table->rememberToken();
             $table->timestamps();
         });
